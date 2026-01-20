@@ -12,6 +12,12 @@ const PrivateRoute = ({ children, allowedRoles }) => {
         return <Navigate to="/login" replace />;
     }
 
+    // If user is logged in but role hasn't loaded yet, wait.
+    // This prevents the race condition where AuthContext is still fetching the role.
+    if (currentUser && userRole === null) {
+        return <div style={{ padding: "2rem", textAlign: "center" }}>Fetching User Profile...</div>;
+    }
+
     if (allowedRoles && !allowedRoles.includes(userRole)) {
         // Redirect to home if logged in but unauthorized, 
         // or maybe to their specific dashboard if we want to be smarter.

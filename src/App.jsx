@@ -3,9 +3,11 @@ import { AuthProvider } from "./context/AuthContext";
 import Login from "./components/Login";
 import Register from "./components/Register";
 import PrivateRoute from "./components/PrivateRoute";
+import AdminDashboard from "./components/admin/AdminDashboard";
+import ManageProducts from "./components/admin/ManageProducts";
 
 // Placeholder Components - We will implement these later
-const AdminDashboard = () => <div className="p-4"><h1>Admin Dashboard</h1></div>;
+
 const StaffDashboard = () => <div className="p-4"><h1>Staff Dashboard</h1></div>;
 const CustomerHome = () => (
   <div className="p-4">
@@ -25,13 +27,20 @@ function App() {
 
           {/* Protected Routes */}
           <Route
-            path="/admin/*"
+            path="/admin"
             element={
               <PrivateRoute allowedRoles={['admin']}>
                 <AdminDashboard />
               </PrivateRoute>
             }
-          />
+          >
+            {/* Nested Admin Routes */}
+            <Route index element={<div className="p-4"><h2>Welcome Admin! Select an option from the sidebar.</h2></div>} />
+            <Route path="products" element={<ManageProducts />} />
+            <Route path="staff" element={<div className="p-4"><h2>Staff Management (Coming Soon)</h2></div>} />
+            <Route path="orders" element={<div className="p-4"><h2>Orders (Coming Soon)</h2></div>} />
+            <Route path="analytics" element={<div className="p-4"><h2>Analytics (Coming Soon)</h2></div>} />
+          </Route>
 
           <Route
             path="/staff/*"
