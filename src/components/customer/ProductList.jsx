@@ -44,10 +44,13 @@ const ProductList = () => {
             <div key={product.id} className="product-card group">
                 {/* Mock Image */}
                 <div className="product-img-box">
-                     <div className="product-img-placeholder relative">
-                        {/* Favorite Heart Icon Mock */}
-                        <div className="absolute top-2 right-2 text-gray-300">❤</div>
-                     </div>
+                     {product.imageUrl ? (
+                        <img src={product.imageUrl} alt={product.name} className="h-full object-contain" />
+                     ) : (
+                        <div className="product-img-placeholder relative">
+                            <span className="text-xs text-gray-400">No Image</span>
+                        </div>
+                     )}
                 </div>
                 
                 <h3 className="product-title group-hover:text-blue-600 truncate w-full">{product.name}</h3>
