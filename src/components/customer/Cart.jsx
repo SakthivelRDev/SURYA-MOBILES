@@ -48,7 +48,9 @@ const Cart = () => {
                 customerPhone: formData.phone,
                 address: formData.address || '',
                 paymentMethod: paymentMethod,
-                paymentStatus: paymentMethod === 'cod' ? 'pending' : 'paid'
+                paymentStatus: paymentMethod === 'cod' ? 'pending' : 'paid',
+                userId: currentUser?.uid,
+                userEmail: currentUser?.email
             };
 
             const pickupCode = await createOrder(orderData);
