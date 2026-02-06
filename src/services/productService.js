@@ -93,19 +93,3 @@ const uploadProductImage = async (file) => {
     }
 };
 
-// Seed demo products (Optional, keeping for quick setup if needed)
-export const seedProducts = async () => {
-    const sampleProducts = [
-        { name: "iPhone 15", price: 79999, category: "Mobile", stock: 10, specs: "128GB, Midnight Black", imageUrl: "https://placehold.co/400" },
-        { name: "Samsung Galaxy S24 Ultra", price: 129999, category: "Mobile", stock: 5, specs: "256GB, Titanium Grey", imageUrl: "https://placehold.co/400" },
-    ];
-
-    try {
-        for (const product of sampleProducts) {
-            await addDoc(productCollection, product);
-        }
-        alert("Demo products added!");
-    } catch (error) {
-        console.error("Error seeding products:", error);
-    }
-};
