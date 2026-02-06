@@ -79,13 +79,15 @@ const ProductDetail = () => {
                         )}
                     </div>
 
-                    {/* Generic Specs Display */}
+                    {/* Generic Specs Display (List format for card) */}
                     <div className="mb-8">
                         <h3 className="font-bold text-gray-700 mb-2">Highlights</h3>
                         <ul className="list-disc pl-5 space-y-1 text-gray-600">
-                            {product.specs
-                                ? product.specs.split(',').map((spec, i) => <li key={i}>{spec.trim()}</li>)
-                                : <li>No specifications listed</li>
+                            {Array.isArray(product.specs)
+                                ? product.specs.map((spec, i) => (
+                                    <li key={i}><strong>{spec.key}:</strong> {spec.value}</li>
+                                ))
+                                : (product.specs ? <li>{product.specs}</li> : <li>No specifications listed</li>) // Fallback for legacy strings
                             }
                         </ul>
                     </div>

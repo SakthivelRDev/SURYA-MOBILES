@@ -69,7 +69,12 @@ const ManageProducts = ({ onEdit }) => {
                                         </div>
                                         <div>
                                             <p className="font-semibold text-gray-800">{product.name}</p>
-                                            <p className="text-xs text-gray-500 truncate w-40">{product.specs}</p>
+                                            <p className="text-xs text-gray-500 truncate w-40">
+                                                {Array.isArray(product.specs)
+                                                    ? product.specs.map(s => `${s.key}: ${s.value}`).join(', ')
+                                                    : product.specs
+                                                }
+                                            </p>
                                         </div>
                                     </td>
                                     <td className="p-4 text-gray-700 font-medium">₹{Number(product.price).toLocaleString()}</td>

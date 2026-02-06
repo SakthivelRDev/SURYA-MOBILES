@@ -44,14 +44,30 @@ const Navbar = () => {
         </div>
       </Link>
 
-      {/* Search Bar (Visual Only) */}
-      <div className="hidden md:block flex-grow max-w-lg mx-4">
-        <input
-          type="text"
-          placeholder="Search for products, brands and more"
-          className="w-full px-4 py-2 rounded-sm text-black outline-none border-none shadow-sm"
-        />
-      </div>
+      {/* Search Bar (Only on Shop Page) */}
+      {window.location.pathname.startsWith('/shop') && (
+        <div className="hidden md:block flex-grow max-w-lg mx-4">
+          <input
+            type="text"
+            placeholder="Search for products, brands and more"
+            className="w-full px-4 py-2 rounded-sm text-black outline-none border-none shadow-sm"
+            onChange={(e) => {
+              const search = e.target.value;
+              const newUrl = new URL(window.location);
+              if (search) {
+                newUrl.searchParams.set('search', search);
+              } else {
+                newUrl.searchParams.delete('search');
+              }
+              // Force reactivity by dispatching event or just relying on ProductList location check which might be tricky without Context.
+              // Let's use simple navigation which triggers re-renders
+              window.history.pushState({}, '', newUrl);
+              // Dispatch event so ProductList can listen
+              window.dispatchEvent(new Event('popstate'));
+            }}
+          />
+        </div>
+      )}
 
       <div className="nav-links">
         {userRole === 'admin' && <Link to="/admin" className="nav-link">Admin</Link>}
