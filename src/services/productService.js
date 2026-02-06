@@ -1,10 +1,14 @@
-import { db } from '../firebaseConfig';
-import { collection, getDocs, addDoc } from 'firebase/firestore';
+import { db, storage } from '../firebaseConfig';
+import { collection, getDocs, getDoc, addDoc, doc, updateDoc, deleteDoc } from 'firebase/firestore';
+import { ref, uploadBytes, getDownloadURL } from 'firebase/storage';
 
-// Fetch all products
+// Collection ref
+const productCollection = collection(db, "products");
+
+// 1. Fetch all products
 export const getAllProducts = async () => {
     try {
-        const querySnapshot = await getDocs(collection(db, "products"));
+        const querySnapshot = await getDocs(productCollection);
         return querySnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
     } catch (error) {
         console.error("Error getting products: ", error);
@@ -12,32 +16,80 @@ export const getAllProducts = async () => {
     }
 };
 
-// Add a single product (Admin helper)
-export const addProduct = async (productData) => {
+// 2. Fetch single product
+export const getProductById = async (id) => {
     try {
-        await addDoc(collection(db, "products"), productData);
+        const docRef = doc(db, "products", id);
+        const docSnap = await getDoc(docRef);
+        if (docSnap.exists()) {
+            return { id: docSnap.id, ...docSnap.data() };
+        } else {
+            return null;
+        }
+    } catch (error) {
+        console.error("Error getting product:", error);
+        throw error;
+    }
+};
+
+// 3. Add a single product
+export const addProduct = async (productData, imageFile) => {
+    try {
+        let imageUrl = "";
+
+        // Upload Image if exists
+        if (imageFile) {
+            imageUrl = await uploadProductImage(imageFile);
+        }
+
+        const newProduct = { ...productData, imageUrl, createdAt: new Date().toISOString() };
+        await addDoc(productCollection, newProduct);
+        return true;
     } catch (error) {
         console.error("Error adding product: ", error);
         throw error;
     }
 };
 
-// Seed demo products
-export const seedProducts = async () => {
-    const sampleProducts = [
-        { name: "iPhone 15", price: 79999, specs: "128GB, Midnight Black" },
-        { name: "Samsung Galaxy S24 Ultra", price: 129999, specs: "256GB, Titanium Grey" },
-        { name: "OnePlus 12 5G", price: 64999, specs: "16GB RAM, Flowy Emerald" },
-        { name: "Redmi Note 13 Pro+", price: 31999, specs: "12GB RAM, 256GB" },
-        { name: "Vivo V30 Pro", price: 41999, specs: "Portrait Master, Andaman Blue" }
-    ];
-
+// 4. Update product
+export const updateProduct = async (id, productData, imageFile) => {
     try {
-        for (const product of sampleProducts) {
-            await addDoc(collection(db, "products"), product);
+        const docRef = doc(db, "products", id);
+        let updatedData = { ...productData };
+
+        if (imageFile) {
+            const imageUrl = await uploadProductImage(imageFile);
+            updatedData.imageUrl = imageUrl;
         }
-        alert("Demo products added! Refresh the page.");
+
+        await updateDoc(docRef, updatedData);
+        return true;
     } catch (error) {
-        console.error("Error seeding products:", error);
+        console.error("Error updating product:", error);
+        throw error;
     }
 };
+
+// 5. Delete product
+export const deleteProduct = async (id) => {
+    try {
+        await deleteDoc(doc(db, "products", id));
+        return true;
+    } catch (error) {
+        console.error("Error deleting product:", error);
+        throw error;
+    }
+};
+
+// Helper: Upload Image to Firebase Storage
+const uploadProductImage = async (file) => {
+    try {
+        const storageRef = ref(storage, `products/${Date.now()}_${file.name}`);
+        const snapshot = await uploadBytes(storageRef, file);
+        return await getDownloadURL(snapshot.ref);
+    } catch (error) {
+        console.error("Error uploading image:", error);
+        throw new Error("Image upload failed");
+    }
+};
+

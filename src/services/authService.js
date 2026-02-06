@@ -1,66 +1,76 @@
-import { auth, db } from '../firebaseConfig';
-import { signInWithEmailAndPassword, createUserWithEmailAndPassword, signOut } from 'firebase/auth';
-import { doc, setDoc, getDoc } from 'firebase/firestore';
+import { 
+  getAuth, 
+  signInWithEmailAndPassword, 
+  createUserWithEmailAndPassword, 
+  signOut,
+  onAuthStateChanged
+} from "firebase/auth";
+import { getFirestore, doc, getDoc, setDoc } from "firebase/firestore";
+import { getFunctions, httpsCallable } from "firebase/functions";
+import app from "../firebaseConfig";
 
-// Login function (Used by Admin, Staff, Customer)
-export const login = async (email, password) => {
+const auth = getAuth(app);
+const db = getFirestore(app);
+const functions = getFunctions(app);
+
+// ✅ Login User
+export const loginUser = async (email, password) => {
   try {
     const userCredential = await signInWithEmailAndPassword(auth, email, password);
     const user = userCredential.user;
     
-    // Fetch role from Firestore
+    // Get user role from Firestore
     const userDoc = await getDoc(doc(db, "users", user.uid));
-    const userData = userDoc.exists() ? userDoc.data() : null;
+    let role = "customer"; // Default role
 
-    return { user, role: userData?.role || 'customer' };
-  } catch (error) {
-    throw error;
-  }
-};
-
-// Register Customer (Self-registration)
-export const registerCustomer = async (email, password, name) => {
-  try {
-    const userCredential = await createUserWithEmailAndPassword(auth, email, password);
-    const user = userCredential.user;
-
-    // Save user details to Firestore
-    await setDoc(doc(db, "users", user.uid), {
-      uid: user.uid,
-      name: name,
-      email: email,
-      role: 'customer',
-      createdAt: new Date().toISOString()
-    });
-
-    return user;
-  } catch (error) {
-    throw error;
-  }
-};
-
-// Create Staff (Admin Only feature)
-export const createStaffAccount = async (email, password, name) => {
-  try {
-    // Note: In a real app, you'd use a Cloud Function for this to avoid logging out the admin.
-    // For this prototype, we will just create it directly.
-    const userCredential = await createUserWithEmailAndPassword(auth, email, password);
-    const user = userCredential.user;
-
-    await setDoc(doc(db, "users", user.uid), {
-      uid: user.uid,
-      name: name,
-      email: email,
-      role: 'staff',
-      createdAt: new Date().toISOString()
-    });
+    if (userDoc.exists()) {
+      const userData = userDoc.data();
+      if (userData.role) {
+        role = userData.role;
+      }
+    }
     
-    return user;
+    return { user, role };
   } catch (error) {
+    console.error("Login Error:", error);
     throw error;
   }
 };
 
-export const logoutUser = () => {
-    return signOut(auth);
+// ✅ Register Customer
+export const registerUser = async (email, password, name) => {
+  try {
+    const userCredential = await createUserWithEmailAndPassword(auth, email, password);
+    const user = userCredential.user;
+
+    // Save user data to Firestore
+    await setDoc(doc(db, "users", user.uid), {
+      name,
+      email,
+      role: "customer",
+      createdAt: new Date().toISOString()
+    });
+
+    return user;
+  } catch (error) {
+    console.error("Registration Error:", error);
+    throw error;
+  }
+};
+
+// ✅ Create Staff Account (Calls Cloud Function)
+export const createStaffAccount = async (email, password, displayName) => {
+  const createStaff = httpsCallable(functions, 'createStaffAccount');
+  const result = await createStaff({ email, password, displayName });
+  return result.data;
+};
+
+// ✅ Logout
+export const logoutUser = async () => {
+    await signOut(auth);
+};
+
+// ✅ Listen to Auth State
+export const subscribeToAuthChanges = (callback) => {
+    return onAuthStateChanged(auth, callback);
 };
