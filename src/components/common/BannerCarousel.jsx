@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
+import { getBanners } from '../../services/bannerService';
 
-const slides = [
+const defaultSlides = [
     {
         id: 1,
         bg: 'bg-gradient-to-r from-blue-600 to-indigo-700',
@@ -26,6 +27,21 @@ const slides = [
 
 const BannerCarousel = () => {
     const [current, setCurrent] = useState(0);
+    const [slides, setSlides] = useState(defaultSlides);
+
+    useEffect(() => {
+        const fetchSlides = async () => {
+            try {
+                const data = await getBanners();
+                if (data.length > 0) {
+                    setSlides(data);
+                }
+            } catch (error) {
+                console.error("Failed to load banners", error);
+            }
+        };
+        fetchSlides();
+    }, []);
 
     // Auto-play
     useEffect(() => {
@@ -33,7 +49,7 @@ const BannerCarousel = () => {
             setCurrent(prev => (prev === slides.length - 1 ? 0 : prev + 1));
         }, 4000);
         return () => clearInterval(timer);
-    }, []);
+    }, [slides]);
 
     const nextSlide = () => setCurrent(current === slides.length - 1 ? 0 : current + 1);
     const prevSlide = () => setCurrent(current === 0 ? slides.length - 1 : current - 1);
@@ -43,12 +59,21 @@ const BannerCarousel = () => {
             {slides.map((slide, index) => (
                 <div
                     key={slide.id}
-                    className={`absolute top-0 left-0 w-full h-full flex flex-col justify-center items-center text-white text-center px-4 transition-transform duration-700 ease-in-out ${slide.bg}`}
+                    className={`absolute top-0 left-0 w-full h-full flex flex-col justify-center items-center text-white text-center px-4 transition-transform duration-700 ease-in-out ${!slide.imageUrl ? slide.bg : ''}`}
                     style={{ transform: `translateX(${(index - current) * 100}%)` }}
                 >
-                    <div className="text-6xl mb-4 animate-bounce">{slide.icon}</div>
-                    <h1 className="text-3xl md:text-5xl font-bold mb-2 drop-shadow-lg">{slide.title}</h1>
-                    <p className="text-lg md:text-xl font-light opacity-90">{slide.subtitle}</p>
+                    {slide.imageUrl && (
+                        <>
+                            <img src={slide.imageUrl} alt={slide.title} className="absolute inset-0 w-full h-full object-cover" />
+                            <div className="absolute inset-0 bg-black/40"></div>
+                        </>
+                    )}
+
+                    <div className="relative z-10">
+                        {(!slide.imageUrl && slide.icon) && <div className="text-6xl mb-4 animate-bounce">{slide.icon}</div>}
+                        <h1 className="text-3xl md:text-5xl font-bold mb-2 drop-shadow-lg">{slide.title}</h1>
+                        <p className="text-lg md:text-xl font-light opacity-90">{slide.subtitle}</p>
+                    </div>
                 </div>
             ))}
 

@@ -4,6 +4,7 @@ import StaffAttendance from './StaffAttendance';
 import SalesAnalytics from './SalesAnalytics';
 import AddProduct from './AddProduct';
 import ManageProducts from './ManageProducts';
+import ManageBanners from './ManageBanners';
 import OfflineSale from '../common/OfflineSale';
 import VerifyOrder from './VerifyOrder';
 
@@ -26,6 +27,7 @@ const AdminDashboard = () => {
       case 'attendance': return <StaffAttendance />;
       case 'add-product': return <AddProduct productToEdit={productToEdit} onClearEdit={clearEdit} />;
       case 'manage-products': return <ManageProducts onEdit={handleEditProduct} />;
+      case 'manage-banners': return <ManageBanners />;
       case 'pos': return <OfflineSale />;
       case 'verify-order': return <VerifyOrder />;
       default: return <SalesAnalytics />;
@@ -60,6 +62,11 @@ const AdminDashboard = () => {
             onClick={() => { setActiveTab('add-product'); clearEdit(); }}
             className={`p-4 text-left hover:bg-slate-700 ${activeTab === 'add-product' ? 'bg-blue-600' : ''}`}>
             📱 Add Products
+          </button>
+          <button
+            onClick={() => setActiveTab('manage-banners')}
+            className={`p-4 text-left hover:bg-slate-700 ${activeTab === 'manage-banners' ? 'bg-blue-600' : ''}`}>
+            📢 Manage Banners
           </button>
           <button
             onClick={() => setActiveTab('manage-products')}
